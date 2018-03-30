@@ -77,5 +77,12 @@ struct sale_control
   const char param_name[];
 };
 
+/**
+ * Insert element into linked list.
+ * @param  toinsert [description]
+ * @param  head     [description]
+ * @return          NULL if unable to insert element
+ */
+base_t * insert(base_t * head, uint8_t size)
 
 #endif /* EXERC_PTO */
