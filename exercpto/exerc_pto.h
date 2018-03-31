@@ -22,19 +22,20 @@
 
 #define ERR(str) printf(str" ERR at "STRINGIFY(LINE)" in %s",__func__)
 
- /**
- * print struct contents.
- * @param head  head of list
- * @param param list of variable addresses for printing
- * @param fmt   [description]
- * @param iteration element
- */
- #ifndef LIST_ITER
- #define LIST_ITER(head,iterel,fmt,...) \
- for(iterel=&head;iterel->next;iterel=iterel->next)   \
- {                                  \
-     printf(fmt,__VA_ARGS__);       \
- }
+/**
+* print struct contents.
+* @param head  head of list
+* @param param list of variable addresses for printing
+* @param fmt   [description]
+* @param iteration element
+*/
+#ifndef LIST_ITER
+#define LIST_ITER(head,iterel,fmt,...)                \
+for(iterel=head;iterel;iterel=iterel->next)     \
+{                                                     \
+  printf(fmt"\n",__VA_ARGS__);                        \
+}                                                     \
+puts("\n");
 #endif /* LIST_ITER */
 
 /*----------Constants---------*/
@@ -51,6 +52,12 @@
 #define CLIENT_ARGS(var) var->id_code,var->name,var->surname,\
                           CPF_ARGS(var->cpf),RG_ARGS(var->rg)
 
+#define SALES_C_FMT "id_code:%u tool_code:%u client_code:%u value:%lf"
+#define SALES_C_ARGS(var) var->id_code, var->tool_code, var->client_code, var->value
+
+#define TOOL_FMT "id_code:%u desc:%s price:%lf"
+#define TOOL_ARGS(var) var->id_code, var->desc, var->price
+
 const char menu_opt[3][5][20] =
   {
     {"Tool stock control","client database","sales database","sync to disk",'\0'},
@@ -58,15 +65,20 @@ const char menu_opt[3][5][20] =
     {'\0'}
   };
 
-enum menu_l0
+enum l0_menu
 {
   TOOL=0,
   CLIENT,
   SALES,
   SYNC
 };
+enum sync_menu
+{
+  SAVE=0,
+  LOAD
+};
 
-enum menu_l1
+enum l1_menu
 {
   ADD=0,
   LIST,
@@ -83,7 +95,7 @@ typedef struct _tool
   void * next;
  uint32_t id_code;/*!<id code*/
  char desc[BUFF_LEN];/*!<name with description*/
- uint32_t price;/*!<price*/
+ double price;/*!<price*/
 }tool_t;
 
 
@@ -106,14 +118,14 @@ typedef struct _client
  * @struct _sale_c
  * Sale control struct.
  */
-typedef struct _sale_c
+typedef struct _sales_c
 {
   void * next;
   uint32_t id_code;
   uint32_t tool_code;
   uint32_t client_code;
-  uint32_t value;
-}sale_c_t;
+  double value;
+}sales_c_t;
 
 typedef struct _base
 {
@@ -129,7 +141,7 @@ typedef union generic
   struct _base base;
   struct _tool tool;
   struct _client client;
-  struct _sale_c sales;
+  struct _sales_c sales;
 }generic_t;
 
 /**

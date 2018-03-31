@@ -3,28 +3,17 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-/*
-4) Crie um sistema de vendas de ferramentas que tenha as seguintes
-funcionalidades:
-- Controle de ferramentas (codigo, descricao, valor) – incluir, excluir listar;
-- Controle de clientes (codigo, nome, sobrenome, cpf, rg) – incluir, excluir,
-listar
-- Controle de vendas (codigo, codigoferramenta, codigocliente, valor) –
-realizar vendas, consultar relatório de vendas por cliente, consultar
-relatório de vendas em ordem crescente por valor
-- O sistema deve armazenar os dados em disco
-*/
 #define DEBUG
 
 #include "exerc_pto.h"
 
 client_t  client_head = { .next=NULL};
 tool_t   tool_head   = { .next=NULL };
-sale_c_t  sale_c_head = { .next=NULL };
+sales_c_t  sales_c_head = { .next=NULL };
 
 client_t  *tmp_client;
 tool_t    *tmp_tool;
-sale_c_t  *tmp_sale_c;
+sales_c_t  *tmp_sales_c;
 
 unsigned int _opt[4] = {0,0,0,0};
 
@@ -45,14 +34,53 @@ int main(void)
       scanf("%u",&_opt[i]);
       if(_opt[i]==SYNC){break;}
     }
-    #ifdef DEBUG
-    printf("%u %u\n",_opt[0],_opt[1]);
-    #endif
 
     switch (_opt[0])
     {
       case TOOL:
+        switch(_opt[1])
+        {
+          case ADD:
+            tmp_tool=malloc(sizeof(generic_t));
+            if(tmp_tool==NULL)
+            {
+              ERR("mem");
+              break;
+            }
+            insert((generic_t *)&tool_head,(generic_t *)tmp_tool);
+            puts("id_code:%u");
+            scanf("%u",&tmp_tool->id_code);
+            puts("desc:%s");
+            fflush(stdin);
+            fgets(tmp_tool->desc,BUFF_LEN,stdin);
+            puts("price:%lf");
+            scanf("%lf",&tmp_tool->price);
+          break;
 
+          case LIST:
+            LIST_ITER(&tool_head,tmp_tool,TOOL_FMT,TOOL_ARGS(tmp_tool));
+          break;
+          case DELETE:
+            /*TODO use find to find item to delete by id code*/
+            puts("insert tool code to delete");
+            uint32_t tofindcode;
+            scanf("%u",&tofindcode);
+            tmp_tool=(tool_t *)find((generic_t *)&tool_head,tofindcode);
+            if(tmp_tool)
+            {
+              printf("deleting\t"TOOL_FMT"\n",TOOL_ARGS(tmp_tool));
+              delete((generic_t *)&tool_head,(generic_t *)tmp_tool);
+              puts("done.\n");
+            }
+            else
+            {
+              ERR("no such sale");
+            }
+          break;
+          default:
+                ERR("invalid opt");
+                break;
+              }
       break;
       case CLIENT:
         switch(_opt[1])
@@ -65,20 +93,22 @@ int main(void)
               break;
             }
             insert((generic_t *)&client_head,(generic_t *)tmp_client);
-            puts("insert the client data\n");
-            puts("name:%s");
-            scanf("%s\n",tmp_client->name);
+            puts("insert the client data\nname:%s");
+            fflush(stdin);
+            fgets(tmp_client->name,BUFF_LEN,stdin);
+            if(tmp_client->name[0]=='\0') fgets(tmp_client->name,BUFF_LEN,stdin);
             puts("surname:%s");
-            scanf("%s\n",tmp_client->surname);
+            fflush(stdin);
+            fgets(tmp_client->surname,BUFF_LEN,stdin);
             puts("id_code:%u");
             scanf("%u", &tmp_client->id_code);
             puts("cpf:"CPF_FMT);
             scanf(CPF_FMT,CPF_ARGS(&tmp_client->cpf));
-            puts("rg"RG_FMT);
+            puts("rg:"RG_FMT);
             scanf(RG_FMT,RG_ARGS(&tmp_client->rg));
           break;
           case LIST:
-            LIST_ITER(client_head,tmp_client, CLIENT_FMT,CLIENT_ARGS(tmp_client));
+            LIST_ITER(&client_head,tmp_client, CLIENT_FMT,CLIENT_ARGS(tmp_client));
           break;
           case DELETE:
             puts("insert client id to delete");
@@ -87,7 +117,7 @@ int main(void)
             tmp_client=(client_t *)find((generic_t *)&client_head,tofindcode);
             if(tmp_client)
             {
-              printf("deleting\n\t "CLIENT_FMT,CLIENT_ARGS(tmp_client));
+              printf("deleting\t "CLIENT_FMT"\n",CLIENT_ARGS(tmp_client));
               delete((generic_t *)&client_head,(generic_t *)tmp_client);
               puts("done.\n");
             }
@@ -101,56 +131,52 @@ int main(void)
           break;
         }
       break;
-      #if 0
       case SALES:
         switch(_opt[1])
         {
           case ADD:
-            tmp_sale_c=malloc(sizeof(generic_t));
-            if(tmp_sale_c==NULL)
+            tmp_sales_c=malloc(sizeof(generic_t));
+            if(tmp_sales_c==NULL)
             {
               ERR("mem");
               break;
             }
             insert((generic_t *)&sales_c_head,(generic_t *)tmp_sales_c);
             puts("insert the sale info\n");
-            puts("id_code:%s");
-            scanf("%s\n",tmp_sales_c->name);
-            puts("surname:%s");
-            scanf("%s\n",tmp_sales_c->surname);
             puts("id_code:%u");
-            scanf("%u", &tmp_sales_c->id_code);
-            puts("cpf:"CPF_FMT);
-            scanf(CPF_FMT,CPF_ARGS(tmp_sales_c->cpf));
-            puts("rg"RG_FMT);
-            scanf(RG_FMT,RG_ARGS(tmp_sales_c->rg));
+            scanf("%u\n",&tmp_sales_c->id_code);
+            puts("sales_c_code:%u");
+            scanf("%u\n",&tmp_sales_c->tool_code);
+            puts("client_code:%u");
+            scanf("%u\n",&tmp_sales_c->client_code);
+            puts("value:%u");
+            scanf("%lf\n",&tmp_sales_c->value);
           break;
           case LIST:
-            LIST_ITER(client_head,tmp_client,\
-              "id_code:%u",\
+            LIST_ITER(&sales_c_head,tmp_sales_c,SALES_C_FMT,SALES_C_ARGS(tmp_sales_c));
           break;
           case DELETE:
             /*TODO use find to find item to delete by id code*/
-            puts("insert client id to delete");
+            puts("insert sale id to delete");
             uint32_t tofindcode;
             scanf("%u",&tofindcode);
-            tmp_client=(client_t *)find((generic_t *)&client_head,tofindcode);
-            if(tmp_client)
+            tmp_sales_c=(sales_c_t *)find((generic_t *)&sales_c_head,tofindcode);
+            if(tmp_sales_c)
             {
-              printf("deleting\n\tname:%s surname:%s id_code:%u cpf:"CPF_FMT"rg"RG_FMT,\
-              tmp_client->name,tmp_client->surname,tmp_client->id_code,\
-              tmp_client->cpf[0],tmp_client->cpf[1],tmp_client->cpf[3],tmp_client->cpf[4],\
-              tmp_client->rg[0],tmp_client->rg[1],tmp_client->rg[2]);
-
-              delete((generic_t *)&client_head,(generic_t *)tmp_client);
+              printf("deleting\t"SALES_C_FMT"\n",SALES_C_ARGS(tmp_sales_c));
+              delete((generic_t *)&sales_c_head,(generic_t *)tmp_sales_c);
               puts("done.\n");
             }
             else
             {
-              ERR("no such client");
+              ERR("no such sale");
             }
+            break;
+            default:
+                ERR("invalid opt");
+            break;
+          }
       break;
-      #endif
       case SYNC:
 
       break;
@@ -165,6 +191,8 @@ int main(void)
 generic_t * find(generic_t * head, uint32_t tofind_id)
 {
   base_t *elem= (base_t *)head;
+  for (;elem->next&&elem->id_code!=tofind_id;elem=elem->next);
+  return (generic_t *)elem;
 }
 
 void insert(generic_t * head, generic_t * _toinsert)
